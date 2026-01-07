@@ -25,8 +25,7 @@ internal class TransactionCurlCommandSharable(
 
             val requestBody = transaction.requestBody
             if (!requestBody.isNullOrEmpty()) {
-                // try to keep to a single line and use a subshell to preserve any line breaks
-                writeUtf8(" --data $'${requestBody.replace("\n", "\\n")}'")
+                writeUtf8(" --data-raw \"${escapeBodyValue(requestBody)}\"")
             }
             writeUtf8((if (compressed) " --compressed " else " ") + transaction.getFormattedUrl(encode = true))
         }
@@ -41,5 +40,16 @@ internal class TransactionCurlCommandSharable(
     private fun escapeHeaderValue(value: String): String {
         // escape double quotes from header value to prevent getting an invalid curl
         return value.replace("\"", "\\\"")
+    }
+
+    private fun escapeBodyValue(value: String): String {
+        return value
+            .replace("\\", "\\\\")
+            .replace("\"", "\\\"")
+            .replace("$", "\\$")
+            .replace("`", "\\`")
+            .replace("\n", "\\n")
+            .replace("\r", "\\r")
+            .replace("\t", "\\t")
     }
 }
